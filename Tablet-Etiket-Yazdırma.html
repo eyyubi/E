@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <title>Dinamik Blister Etiket</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #183b35;
+            --ink-soft: #49645d;
+            --muted: #74867f;
+            --green: #1c6b57;
+            --green-dark: #145345;
+            --mint: #e7f2ec;
+            --paper: #f4f5ef;
+            --line: #dce6df;
+            --amber: #d6a454;
+            --white: #fffefa;
+        }
+
+        @page etiket-yatay {
+            size: 10cm 8cm;
+            margin: 0;
+        }
+        @page etiket-dikey {
+            size: 8cm 10cm;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: var(--ink);
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(ellipse at 7% 0%, rgba(202, 224, 209, 0.55), transparent 36rem),
+                linear-gradient(145deg, #f6f6f0 0%, #edf2eb 55%, #e8efea 100%);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body.yatay-mod {
+            page: etiket-yatay;
+        }
+        body.dikey-mod {
+            page: etiket-dikey;
+        }
+
+        .topbar,
+        .app-shell {
+            width: min(1180px, calc(100% - 48px));
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 30px 2px 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            position: relative;
+            display: grid;
+            width: 48px;
+            height: 48px;
+            place-items: center;
+            border-radius: 16px;
+            color: #fff;
+            background: linear-gradient(145deg, #2b8067, #165444);
+            box-shadow: 0 8px 18px rgba(24, 84, 68, 0.2);
+        }
+
+        .brand-mark::before,
+        .brand-mark::after {
+            position: absolute;
+            content: "";
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+        }
+
+        .brand-mark::before {
+            width: 18px;
+            height: 26px;
+            transform: rotate(-38deg);
+        }
+
+        .brand-mark::after {
+            width: 18px;
+            height: 26px;
+            transform: rotate(38deg);
+        }
+
+        .brand-copy p,
+        .brand-copy h1 {
+            margin: 0;
+        }
+
+        .brand-copy p {
+            color: var(--green);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .brand-copy h1 {
+            margin-top: 3px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(22px, 3vw, 30px);
+            font-weight: 600;
+            letter-spacing: -0.035em;
+        }
+
+        .topbar-note {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--ink-soft);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #55a47d;
+            box-shadow: 0 0 0 4px rgba(85, 164, 125, 0.13);
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: minmax(330px, 430px) minmax(0, 1fr);
+            align-items: start;
+            gap: 24px;
+            padding-bottom: 42px;
+        }
+
+        .panel {
+            min-width: 0;
+            border: 1px solid rgba(211, 224, 215, 0.9);
+            border-radius: 22px;
+            background: rgba(255, 254, 250, 0.92);
+            box-shadow: 0 18px 45px rgba(39, 74, 58, 0.08), 0 2px 8px rgba(39, 74, 58, 0.04);
+        }
+
+        .kontrol-paneli {
+            padding: 25px;
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .panel-number {
+            display: grid;
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            border: 1px solid #d4e5d9;
+            border-radius: 11px;
+            color: var(--green);
+            background: var(--mint);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .panel-heading h2,
+        .panel-heading p {
+            margin: 0;
+        }
+
+        .panel-heading h2 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 21px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .panel-heading p {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .control-section {
+            margin-top: 23px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+        }
+
+        .section-title {
+            margin: 0 0 13px;
+            color: var(--ink-soft);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+        .form-grup {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-grup.wide {
+            grid-column: 1 / -1;
+        }
+
+        .template-select-group {
+            margin-top: 12px;
+        }
+
+        .form-grup label {
+            color: var(--ink-soft);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .form-grup input,
+        .form-grup select {
+            width: 100%;
+            min-width: 0;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid #d7e2da;
+            border-radius: 11px;
+            outline: none;
+            color: var(--ink);
+            background: #fff;
+            font: inherit;
+            font-size: 13px;
+            transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        .form-grup input::placeholder {
+            color: #9aa9a1;
+        }
+
+        .form-grup input:focus,
+        .form-grup select:focus {
+            border-color: #5c9c81;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(72, 142, 109, 0.15);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            min-height: 40px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 13px;
+            border: 1px solid transparent;
+            border-radius: 11px;
+            cursor: pointer;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 750;
+            transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid rgba(72, 142, 109, 0.3);
+            outline-offset: 2px;
+        }
+
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.48;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, #277961, #155747);
+            box-shadow: 0 6px 14px rgba(28, 107, 87, 0.18);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #216c57, #104b3e);
+            box-shadow: 0 8px 18px rgba(28, 107, 87, 0.23);
+        }
+
+        .btn-secondary {
+            border-color: #cfe0d4;
+            color: var(--green-dark);
+            background: #eef6f0;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: #a8cbb4;
+            background: #e3f0e6;
+        }
+
+        .btn-quiet {
+            border-color: #dce6df;
+            color: var(--ink-soft);
+            background: #fffefa;
+        }
+
+        .btn-quiet:hover:not(:disabled) {
+            border-color: #c3d5c9;
+            background: #f4f8f4;
+        }
+
+        .btn-danger {
+            color: #9e4e42;
+        }
+
+        .button-row .btn {
+            flex: 1 1 auto;
+        }
+
+        .template-select-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+        }
+
+        .template-select-row select {
+            width: 100%;
+            height: 40px;
+            min-width: 0;
+            padding: 0 10px;
+            border: 1px solid #d7e2da;
+            border-radius: 11px;
+            color: var(--ink);
+            background: #fff;
+            font: inherit;
+            font-size: 12px;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 9px;
+        }
+
+        .template-actions .btn {
+            flex: 1 1 auto;
+        }
+
+        .section-caption {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .backup-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .backup-actions .btn {
+            padding-inline: 9px;
+        }
+
+        .file-input-hidden {
+            display: none;
+        }
+
+        .status-message {
+            min-height: 18px;
+            margin: 13px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .status-message[data-state="success"] {
+            color: #28734f;
+        }
+
+        .status-message[data-state="error"] {
+            color: #a34539;
+        }
+
+        .preview-panel {
+            overflow: hidden;
+        }
+
+        .preview-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 22px 24px 18px;
+        }
+
+        .preview-head h2,
+        .preview-head p {
+            margin: 0;
+        }
+
+        .preview-head h2 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 21px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .preview-head p {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .size-badge {
+            flex: 0 0 auto;
+            padding: 7px 10px;
+            border: 1px solid #d7e7da;
+            border-radius: 999px;
+            color: var(--green-dark);
+            background: #eff7ef;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .label-stage {
+            display: grid;
+            min-height: 570px;
+            place-items: center;
+            overflow: auto;
+            padding: 28px;
+            border-top: 1px solid #e6ece5;
+            border-bottom: 1px solid #e6ece5;
+            background:
+                radial-gradient(circle at 1px 1px, rgba(51, 96, 72, 0.105) 1px, transparent 1.2px) 0 0 / 18px 18px,
+                linear-gradient(145deg, #f2f5ed, #eaf0e8);
+        }
+
+        .etiket-kutusu {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: 0;
+            padding: 2mm;
+            border: 1px solid rgba(24, 59, 53, 0.13);
+            border-radius: 5px;
+            background: #fff !important;
+            box-shadow: 0 22px 48px rgba(24, 59, 53, 0.2), 0 4px 12px rgba(24, 59, 53, 0.12);
+            position: relative;
+        }
+
+        body.yatay-mod .etiket-kutusu {
+            width: 10cm;
+            height: 8cm;
+        }
+        body.dikey-mod .etiket-kutusu {
+            width: 8cm;
+            height: 10cm;
+        }
+
+        .blister-grid {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            gap: 1mm;
+        }
+
+        .tablet-hucre {
+            display: flex;
+            min-width: 0;
+            min-height: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 1px;
+            border: 1px solid #28594c;
+            border-radius: 3px;
+            text-align: center;
+            background: #fff !important;
+            box-sizing: border-box;
+        }
+
+        .ilac-adi {
+            display: -webkit-box;
+            overflow: hidden;
+            max-height: 3.3em;
+            margin-bottom: 1px;
+            color: #142d28;
+            font-size: 4.5pt;
+            font-weight: 750;
+            line-height: 1.1;
+            word-break: break-word;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+        }
+
+        .son-kullanma {
+            color: #34594f;
+            font-size: 4.2pt;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .preview-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 24px 20px;
+        }
+
+        .cell-count {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .btn-print {
+            min-width: 156px;
+        }
+
+        @media (max-width: 850px) {
+            .app-shell {
+                grid-template-columns: minmax(0, 1fr);
+                max-width: 680px;
+            }
+
+            .label-stage {
+                min-height: 470px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .topbar,
+            .app-shell {
+                width: min(100% - 28px, 680px);
+            }
+
+            .topbar {
+                align-items: flex-start;
+                padding-top: 20px;
+                padding-bottom: 17px;
+            }
+
+            .brand-mark {
+                width: 42px;
+                height: 42px;
+                border-radius: 14px;
+            }
+
+            .brand-copy h1 {
+                font-size: 23px;
+            }
+
+            .topbar-note {
+                display: none;
+            }
+
+            .kontrol-paneli {
+                padding: 19px;
+            }
+
+            .preview-head {
+                padding: 19px;
+            }
+
+            .label-stage {
+                min-height: 400px;
+                padding: 18px;
+            }
+
+            body.yatay-mod .etiket-kutusu {
+                width: min(10cm, calc(100vw - 64px));
+                height: auto;
+                aspect-ratio: 10 / 8;
+            }
+
+            body.dikey-mod .etiket-kutusu {
+                width: min(8cm, calc(100vw - 64px));
+                height: auto;
+                aspect-ratio: 8 / 10;
+            }
+
+            .preview-foot {
+                padding: 14px 19px 18px;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .control-grid,
+            .backup-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grup.wide {
+                grid-column: auto;
+            }
+
+            .size-badge {
+                padding: 6px 8px;
+                font-size: 9px;
+            }
+
+            .btn-print {
+                min-width: 130px;
+            }
+        }
+
+        @media print {
+            body {
+                min-height: 0;
+                background: #fff !important;
+            }
+
+            .topbar,
+            .kontrol-paneli,
+            .preview-head,
+            .preview-foot {
+                display: none !important;
+            }
+
+            .app-shell {
+                display: block;
+                width: auto;
+                margin: 0;
+                padding: 0;
+            }
+
+            .preview-panel {
+                overflow: visible;
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            .label-stage {
+                display: block;
+                min-height: 0;
+                overflow: visible;
+                padding: 0;
+                border: 0;
+                background: transparent;
+            }
+
+            .etiket-kutusu {
+                position: absolute;
+                top: 0;
+                left: 0;
+                margin: 0 !important;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none !important;
+            }
+
+            body.yatay-mod .etiket-kutusu {
+                width: 10cm !important;
+                height: 8cm !important;
+                aspect-ratio: auto;
+            }
+
+            body.dikey-mod .etiket-kutusu {
+                width: 8cm !important;
+                height: 10cm !important;
+                aspect-ratio: auto;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body id="anaGovde" class="dikey-mod">
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <div class="brand-copy">
+                <p>Blister Studio</p>
+                <h1>Etiketini hazırla</h1>
+            </div>
+        </div>
+        <div class="topbar-note"><span class="status-dot" aria-hidden="true"></span>Önizleme anında güncellenir</div>
+    </header>
+
+    <main class="app-shell">
+        <section class="panel kontrol-paneli" aria-labelledby="ayarBaslik">
+            <div class="panel-heading">
+                <span class="panel-number" aria-hidden="true">01</span>
+                <div>
+                    <h2 id="ayarBaslik">Etiket bilgileri</h2>
+                    <p>İlaç detaylarını ve blister düzenini belirleyin.</p>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3 class="section-title">Etiket ayarları</h3>
+                <div class="control-grid">
+                    <div class="form-grup wide">
+                        <label for="yonSelect">Etiket yönü</label>
+                        <select id="yonSelect">
+                            <option value="dikey" selected>Dikey · 8 × 10 cm</option>
+                            <option value="yatay">Yatay · 10 × 8 cm</option>
+                        </select>
+                    </div>
+                    <div class="form-grup wide">
+                        <label for="ilacAdiInput">İlaç adı ve doz</label>
+                        <input type="text" id="ilacAdiInput" maxlength="300" value="" placeholder="Örn. Parasetamol 500 mg" autocomplete="off">
+                    </div>
+                    <div class="form-grup wide">
+                        <label for="sktInput">Son kullanma tarihi</label>
+                        <input type="text" id="sktInput" maxlength="100" value="12/2028" placeholder="Örn. 12/2028" autocomplete="off">
+                    </div>
+                    <div class="form-grup">
+                        <label for="satirInput">Satır sayısı</label>
+                        <input type="number" id="satirInput" value="7" min="1" max="15" step="1">
+                    </div>
+                    <div class="form-grup">
+                        <label for="sutunInput">Sütun sayısı</label>
+                        <input type="number" id="sutunInput" value="7" min="1" max="15" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3 class="section-title">İlaç şablonları</h3>
+                <div class="form-grup">
+                    <label for="templateNameInput">Şablon adı</label>
+                    <input type="text" id="templateNameInput" maxlength="100" placeholder="Boş bırakılırsa ilaç adı kullanılır" autocomplete="off">
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-primary" id="saveTemplateBtn" type="button">Şablonu kaydet</button>
+                </div>
+                <div class="form-grup template-select-group">
+                    <label for="templateSelect">Kayıtlı şablonlar</label>
+                    <div class="template-select-row">
+                        <select id="templateSelect" aria-label="Kayıtlı ilaç şablonu seçin">
+                            <option value="">Şablon seçin</option>
+                        </select>
+                        <button class="btn btn-quiet" id="loadTemplateBtn" type="button" disabled>Yükle</button>
+                    </div>
+                </div>
+                <div class="template-actions">
+                    <button class="btn btn-quiet btn-danger" id="deleteTemplateBtn" type="button" disabled>Seçileni sil</button>
+                </div>
+                <p class="section-caption">Şablonlar bu tarayıcıda saklanır. Yedek dosyasıyla başka cihaza aktarabilirsiniz.</p>
+            </div>
+
+            <div class="control-section">
+                <h3 class="section-title">Yedekleme</h3>
+                <div class="backup-actions">
+                    <button class="btn btn-secondary" id="exportBackupBtn" type="button">JSON yedeği indir</button>
+                    <button class="btn btn-quiet" id="importBackupBtn" type="button">Yedekten geri yükle</button>
+                    <input class="file-input-hidden" id="backupFileInput" type="file" accept=".json,application/json">
+                </div>
+                <p class="section-caption">Yedek; kayıtlı şablonları ve ekrandaki mevcut ayarları içerir.</p>
+                <p class="status-message" id="statusMessage" role="status" aria-live="polite"></p>
+            </div>
+        </section>
+
+        <section class="panel preview-panel" aria-labelledby="previewHeading">
+            <div class="preview-head">
+                <div>
+                    <h2 id="previewHeading">Canlı önizleme</h2>
+                    <p>Yazdırıldığında gerçek etiket ölçüsünde çıkar.</p>
+                </div>
+                <span class="size-badge" id="sizeBadge">8 × 10 CM</span>
+            </div>
+            <div class="label-stage">
+                <div class="etiket-kutusu" id="etiketKutusu">
+                    <div id="blisterGrid" class="blister-grid" aria-label="Blister etiket hücreleri"></div>
+                </div>
+            </div>
+            <div class="preview-foot">
+                <span class="cell-count" id="cellCount">49 etiket hücresi</span>
+                <button class="btn btn-primary btn-print" id="yazdirBtn" type="button">Etiketi yazdır</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const TEMPLATE_STORAGE_KEY = 'dinamik-blister-etiket.templates.v1';
+        const BACKUP_FORMAT = 'dinamik-blister-etiket-backup';
+        const BACKUP_VERSION = 1;
+        const MAX_BACKUP_SIZE = 2 * 1024 * 1024;
+
+        const yonSelect = document.getElementById('yonSelect');
+        const ilacAdiInput = document.getElementById('ilacAdiInput');
+        const sktInput = document.getElementById('sktInput');
+        const satirInput = document.getElementById('satirInput');
+        const sutunInput = document.getElementById('sutunInput');
+        const templateNameInput = document.getElementById('templateNameInput');
+        const templateSelect = document.getElementById('templateSelect');
+        const loadTemplateBtn = document.getElementById('loadTemplateBtn');
+        const deleteTemplateBtn = document.getElementById('deleteTemplateBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        function setStatus(message, state = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.dataset.state = state;
+        }
+
+        function normalizeExpiry(value) {
+            return String(value ?? '').trim().replace(/^SKT\s*[:：]\s*/i, '');
+        }
+
+        function clampNumber(input) {
+            const parsed = Number.parseInt(input.value, 10);
+            const value = Number.isFinite(parsed) ? Math.min(15, Math.max(1, parsed)) : 1;
+            input.value = String(value);
+            return value;
+        }
+
+        function gridGuncelle() {
+            const yon = yonSelect.value === 'yatay' ? 'yatay' : 'dikey';
+            const satir = clampNumber(satirInput);
+            const sutun = clampNumber(sutunInput);
+            const ilacAdi = ilacAdiInput.value.trim();
+            const skt = normalizeExpiry(sktInput.value);
+
+            const anaGovde = document.getElementById('anaGovde');
+            anaGovde.classList.toggle('yatay-mod', yon === 'yatay');
+            anaGovde.classList.toggle('dikey-mod', yon === 'dikey');
+
+            const gridContainer = document.getElementById('blisterGrid');
+            gridContainer.style.gridTemplateColumns = `repeat(${sutun}, minmax(0, 1fr))`;
+            gridContainer.style.gridTemplateRows = `repeat(${satir}, minmax(0, 1fr))`;
+
+            const hucreler = document.createDocumentFragment();
+            for (let i = 0; i < satir * sutun; i++) {
+                const hucre = document.createElement('div');
+                hucre.className = 'tablet-hucre';
+
+                const ad = document.createElement('div');
+                ad.className = 'ilac-adi';
+                ad.textContent = ilacAdi;
+
+                const tarih = document.createElement('div');
+                tarih.className = 'son-kullanma';
+                tarih.textContent = skt;
+
+                hucre.append(ad, tarih);
+                hucreler.appendChild(hucre);
+            }
+            gridContainer.replaceChildren(hucreler);
+
+            document.getElementById('sizeBadge').textContent = yon === 'dikey' ? '8 × 10 CM' : '10 × 8 CM';
+            document.getElementById('cellCount').textContent = `${satir * sutun} etiket hücresi`;
+        }
+
+        function getCurrentSettings() {
+            gridGuncelle();
+            return {
+                orientation: yonSelect.value === 'yatay' ? 'yatay' : 'dikey',
+                medicineName: ilacAdiInput.value.trim(),
+                expiry: normalizeExpiry(sktInput.value),
+                rows: clampNumber(satirInput),
+                columns: clampNumber(sutunInput)
+            };
+        }
+
+        function setCurrentSettings(settings) {
+            yonSelect.value = settings.orientation;
+            ilacAdiInput.value = settings.medicineName;
+            sktInput.value = normalizeExpiry(settings.expiry);
+            satirInput.value = String(settings.rows);
+            sutunInput.value = String(settings.columns);
+            gridGuncelle();
+        }
+
+        function requireText(value, label, maxLength, allowEmpty = true) {
+            if (typeof value !== 'string') {
+                throw new Error(`${label} metin olmalı.`);
+            }
+            const normalized = value.trim();
+            if ((!allowEmpty && !normalized) || normalized.length > maxLength) {
+                throw new Error(`${label} boş olamaz ve ${maxLength} karakteri geçemez.`);
+            }
+            return normalized;
+        }
+
+        function normalizeSettings(value, label = 'Ayarlar') {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) {
+                throw new Error(`${label} verisi geçersiz.`);
+            }
+            if (value.orientation !== 'dikey' && value.orientation !== 'yatay') {
+                throw new Error(`${label} için yön bilgisi geçersiz.`);
+            }
+            if (!Number.isInteger(value.rows) || value.rows < 1 || value.rows > 15
+                || !Number.isInteger(value.columns) || value.columns < 1 || value.columns > 15) {
+                throw new Error(`${label} için satır ve sütun değerleri 1–15 arasında olmalı.`);
+            }
+            return {
+                orientation: value.orientation,
+                medicineName: requireText(value.medicineName, 'İlaç adı', 300),
+                expiry: normalizeExpiry(requireText(value.expiry, 'Son kullanma tarihi', 100)),
+                rows: value.rows,
+                columns: value.columns
+            };
+        }
+
+        function normalizeTemplate(value) {
+            if (!value || typeof value !== 'object' || Array.isArray(value)) {
+                throw new Error('Şablon kaydı geçersiz.');
+            }
+            const id = requireText(value.id, 'Şablon kimliği', 120, false);
+            const name = requireText(value.name, 'Şablon adı', 100, false);
+            return { id, name, ...normalizeSettings(value, `“${name}” şablonu`) };
+        }
+
+        function readTemplates() {
+            const stored = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+            if (!stored) return [];
+            const parsed = JSON.parse(stored);
+            if (!Array.isArray(parsed) || parsed.length > 500) {
+                throw new Error('Kayıtlı şablon listesi okunamıyor. JSON yedeğinden geri yükleyin.');
+            }
+            return ensureUniqueTemplates(parsed.map(normalizeTemplate));
+        }
+
+        function ensureUniqueTemplates(templates) {
+            const ids = new Set();
+            const names = new Set();
+            for (const template of templates) {
+                const normalizedName = template.name.toLocaleLowerCase('tr');
+                if (ids.has(template.id) || names.has(normalizedName)) {
+                    throw new Error('Aynı kimliğe veya ada sahip birden fazla şablon bulundu.');
+                }
+                ids.add(template.id);
+                names.add(normalizedName);
+            }
+            return templates;
+        }
+
+        function writeTemplates(templates) {
+            localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+        }
+
+        function updateTemplateButtons() {
+            const hasSelection = Boolean(templateSelect.value);
+            loadTemplateBtn.disabled = !hasSelection;
+            deleteTemplateBtn.disabled = !hasSelection;
+        }
+
+        function renderTemplateSelect(selectedId = '') {
+            try {
+                const templates = readTemplates().sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+                templateSelect.replaceChildren(new Option('Şablon seçin', ''));
+                for (const template of templates) {
+                    templateSelect.add(new Option(template.name, template.id));
+                }
+                if (templates.some((template) => template.id === selectedId)) {
+                    templateSelect.value = selectedId;
+                }
+                updateTemplateButtons();
+                return templates;
+            } catch (error) {
+                templateSelect.replaceChildren(new Option('Şablonlar okunamadı', ''));
+                updateTemplateButtons();
+                setStatus(`Şablonlar okunamadı: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        function createId() {
+            return globalThis.crypto?.randomUUID?.()
+                ?? `tpl-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        }
+
+        function saveTemplate() {
+            const name = (templateNameInput.value.trim() || ilacAdiInput.value.trim()).slice(0, 100);
+            if (!name) {
+                setStatus('Kaydetmek için bir şablon adı veya ilaç adı girin.', 'error');
+                templateNameInput.focus();
+                return;
+            }
+
+            try {
+                const templates = readTemplates();
+                const existingIndex = templates.findIndex(
+                    (template) => template.name.toLocaleLowerCase('tr') === name.toLocaleLowerCase('tr')
+                );
+                if (existingIndex >= 0 && !window.confirm(`“${name}” şablonu zaten var. Güncel bilgilerle üzerine yazılsın mı?`)) {
+                    return;
+                }
+
+                const existing = existingIndex >= 0 ? templates[existingIndex] : null;
+                const template = {
+                    id: existing?.id ?? createId(),
+                    name,
+                    ...getCurrentSettings()
+                };
+                if (existingIndex >= 0) {
+                    templates[existingIndex] = template;
+                } else {
+                    templates.push(template);
+                }
+                writeTemplates(templates);
+                templateNameInput.value = name;
+                renderTemplateSelect(template.id);
+                setStatus(`“${name}” şablonu bu tarayıcıya kaydedildi.`, 'success');
+            } catch (error) {
+                setStatus(`Şablon kaydedilemedi: ${error.message}`, 'error');
+            }
+        }
+
+        function loadSelectedTemplate() {
+            try {
+                const template = readTemplates().find((item) => item.id === templateSelect.value);
+                if (!template) {
+                    setStatus('Önce yüklenecek bir şablon seçin.', 'error');
+                    return;
+                }
+                templateNameInput.value = template.name;
+                setCurrentSettings(template);
+                setStatus(`“${template.name}” şablonu yüklendi.`, 'success');
+            } catch (error) {
+                setStatus(`Şablon yüklenemedi: ${error.message}`, 'error');
+            }
+        }
+
+        function deleteSelectedTemplate() {
+            try {
+                const templates = readTemplates();
+                const template = templates.find((item) => item.id === templateSelect.value);
+                if (!template) return;
+                if (!window.confirm(`“${template.name}” şablonu kalıcı olarak silinsin mi?`)) return;
+
+                writeTemplates(templates.filter((item) => item.id !== template.id));
+                renderTemplateSelect();
+                setStatus(`“${template.name}” şablonu silindi.`, 'success');
+            } catch (error) {
+                setStatus(`Şablon silinemedi: ${error.message}`, 'error');
+            }
+        }
+
+        function validateBackup(value) {
+            if (!value || typeof value !== 'object' || Array.isArray(value)
+                || value.format !== BACKUP_FORMAT || value.version !== BACKUP_VERSION) {
+                throw new Error('Bu dosya desteklenen etiket yedeği biçiminde değil.');
+            }
+            if (!Array.isArray(value.templates) || value.templates.length > 500) {
+                throw new Error('Yedekteki şablon listesi geçersiz veya çok büyük.');
+            }
+            const templates = ensureUniqueTemplates(value.templates.map(normalizeTemplate));
+            return {
+                templates,
+                currentSettings: normalizeSettings(value.currentSettings, 'Yedek ayarları')
+            };
+        }
+
+        function exportBackup() {
+            try {
+                const backup = {
+                    format: BACKUP_FORMAT,
+                    version: BACKUP_VERSION,
+                    exportedAt: new Date().toISOString(),
+                    currentSettings: getCurrentSettings(),
+                    templates: readTemplates()
+                };
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `etiket-yedegi-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+                setStatus(`${backup.templates.length} şablon ve mevcut ayarlar JSON dosyasına aktarıldı.`, 'success');
+            } catch (error) {
+                setStatus(`JSON yedeği oluşturulamadı: ${error.message}`, 'error');
+            }
+        }
+
+        async function importBackup(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            try {
+                if (file.size > MAX_BACKUP_SIZE) {
+                    throw new Error('Yedek dosyası 2 MB sınırını aşıyor.');
+                }
+                const backup = validateBackup(JSON.parse(await file.text()));
+                let existingCount = 0;
+                let localTemplatesReadable = true;
+                try {
+                    existingCount = readTemplates().length;
+                } catch {
+                    localTemplatesReadable = false;
+                }
+                const replacementNotice = localTemplatesReadable
+                    ? `mevcut ${existingCount} şablonu`
+                    : 'okunamayan mevcut şablon kayıtlarını';
+                const confirmed = window.confirm(
+                    `Bu işlem ${replacementNotice} ve ekrandaki ayarları yedekteki ${backup.templates.length} şablon ve ayarlarla değiştirecek. Devam edilsin mi?`
+                );
+                if (!confirmed) {
+                    setStatus('Geri yükleme iptal edildi.');
+                    return;
+                }
+
+                writeTemplates(backup.templates);
+                setCurrentSettings(backup.currentSettings);
+                templateNameInput.value = '';
+                renderTemplateSelect();
+                setStatus(`${backup.templates.length} şablon ve etiket ayarları yedekten geri yüklendi.`, 'success');
+            } catch (error) {
+                setStatus(`Yedek geri yüklenemedi: ${error.message}`, 'error');
+            } finally {
+                event.target.value = '';
+            }
+        }
+
+        yonSelect.addEventListener('change', gridGuncelle);
+        ilacAdiInput.addEventListener('input', gridGuncelle);
+        sktInput.addEventListener('input', gridGuncelle);
+        satirInput.addEventListener('input', gridGuncelle);
+        sutunInput.addEventListener('input', gridGuncelle);
+        document.getElementById('saveTemplateBtn').addEventListener('click', saveTemplate);
+        templateNameInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') saveTemplate();
+        });
+        templateSelect.addEventListener('change', updateTemplateButtons);
+        loadTemplateBtn.addEventListener('click', loadSelectedTemplate);
+        deleteTemplateBtn.addEventListener('click', deleteSelectedTemplate);
+        document.getElementById('exportBackupBtn').addEventListener('click', exportBackup);
+        document.getElementById('importBackupBtn').addEventListener('click', () => {
+            document.getElementById('backupFileInput').click();
+        });
+        document.getElementById('backupFileInput').addEventListener('change', importBackup);
+        document.getElementById('yazdirBtn').addEventListener('click', () => window.print());
+
+        gridGuncelle();
+        renderTemplateSelect();
+    </script>
+
+</body>
+</html>
